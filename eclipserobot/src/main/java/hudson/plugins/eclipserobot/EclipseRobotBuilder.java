@@ -90,9 +90,6 @@ public final class EclipseRobotBuilder extends Builder {
 		final EnvVars env = build.getEnvironment(listener);
 		if (commandLine != null && eclipseExecutable != null) {
 			listener.getLogger().println("Performing Eclipse-Robot script task...");
-			
-			listener.getLogger().println("Running the following command:" + commandLine);
-			listener.getLogger().println("Running the following eclipse:" + eclipseExecutable);
 
 			listener.getLogger().println("Trying to run Eclipse...");
 			String executable = eclipseExecutable;
@@ -100,19 +97,24 @@ public final class EclipseRobotBuilder extends Builder {
 			runner.perform(build, launcher, listener);
 
 			listener.getLogger().println("Waiting for connection...");
-			sendToServer("", listener.getLogger(), 4 * 60 * 1000); // Timeout after 4 mins
+			if (!sendToServer("", listener.getLogger(), 4 * 60 * 1000)) {// Timeout after 4 mins
+				listener.getLogger.println("Connection failed...");
+				return false;
+			}
 			listener.getLogger().println("Connection established...");
 
 			listener.getLogger().println("Running script...");
 			BufferedReader reader = new BufferedReader(new StringReader(commandLine));
-			while (reader.ready()) {
-				String readLine = reader.readLine();
-				listener.getLogger().println("Sending data: [" + readLine + "]");
+			String readLine = null;
+			while ((readLine = reader.readLine()) != null) {
+				readLine = readLine.trim();
+				listener.getLogger().println("Sending data: " + readLine);
 				if (!sendToServer(readLine, listener.getLogger(), 2000)) {
 					listener.getLogger().println("Unable to send data, connection reset...");
 					reader.close();
 				}
 			}
+			listener.getLogger().println("Eclipse-Robot script task finished.");
 		}
 		return true;
 	}
@@ -137,6 +139,7 @@ public final class EclipseRobotBuilder extends Builder {
 	 */
 	private boolean sendToServer(String string, PrintStream logger, int timeout) {
 		long time = System.currentTimeMillis();
+		boolean	success = true;
 		Socket s = null;
 
 		// Try establishing a connection
@@ -145,23 +148,38 @@ public final class EclipseRobotBuilder extends Builder {
 				s = new Socket(getHost(), getPort());
 			} catch (IOException e) {
 				s = null;
-				logger.println("Connection attempt failed, retrying...");
 				try { Thread.sleep(100); } catch (InterruptedException e_) {}
 			}
 		}
+		
+		if (s == null)
+			return false;
 
+		int current = 0;
+		String newString;
+		StringBuffer sb = new StringBuffer();
 		try {
 			BufferedWriter out = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
-			out.write(string);
+			BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+			
+			out.write(string + "\n");
 			out.flush();
-			while (s.isConnected()) {
-				BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
-				if(in.ready()) logger.println(in.readLine());
+			
+			current = in.read();
+			while (current != -1) {
+				newString = String.copyValueOf(Character.toChars(current));
+				if (newString.contains("\n") || newString.contains("\r")) {
+					System.out.println(sb.toString() + newString);
+					sb = new StringBuffer();
+				} else
+					sb.append(newString);
+				current = in.read();
 			}
 		} catch (IOException e) {
-			return false;
+			if (current == 0)
+				success = false;
 		}
-		return true;
+		return success;
 	}
 
 	private String getHost() {
