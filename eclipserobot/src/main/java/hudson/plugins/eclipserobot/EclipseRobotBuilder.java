@@ -93,12 +93,12 @@ public final class EclipseRobotBuilder extends Builder {
 
 			listener.getLogger().println("Trying to run Eclipse...");
 			String executable = eclipseExecutable;
-			CommandInterpreter runner = getCommandInterpreter(launcher, executable + " -data . &");
+			CommandInterpreter runner = getCommandInterpreter(launcher, executable + " -data . 2>&1  1>eclipse.log &");
 			runner.perform(build, launcher, listener);
 
 			listener.getLogger().println("Waiting for connection...");
 			if (!sendToServer("", listener.getLogger(), 4 * 60 * 1000)) {// Timeout after 4 mins
-				listener.getLogger.println("Connection failed...");
+				listener.getLogger().println("Connection failed...");
 				return false;
 			}
 			listener.getLogger().println("Connection established...");
