@@ -69,12 +69,6 @@ public final class EclipseRobotBuilder extends Builder {
 	public Boolean getExecuteFromWorkingDir() {
 		return executeFromWorkingDir;
 	}
-
-	@DataBoundConstructor
-	public EclipseRobotBuilder(final String commandLine, final Boolean executeFromWorkingDir) {
-		this.commandLine = Util.fixEmptyAndTrim(commandLine);
-		this.executeFromWorkingDir = executeFromWorkingDir;
-	}
 	
 	@DataBoundConstructor
 	public EclipseRobotBuilder(final String commandLine, final String eclipseExecutable, final Boolean executeFromWorkingDir) {
