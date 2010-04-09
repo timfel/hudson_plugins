@@ -1,0 +1,14 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+    
+    <f:entry title="${%Command line}" help="${rootURL}/../plugin/eclipserobot/help-commandline.html">
+      <textarea class="setting-input" name="eclipserobotBuilder.commandLine"
+        rows="5" style="width:100%">${instance.commandLine}</textarea>
+    </f:entry>
+    <f:entry title="${%Path to eclipse executable}" help="${rootURL}/../plugin/eclipserobot/help-eclipse-executable.html">
+        <f:textbox name="eclipserobotBuilder.eclipseExecutable" value="${instance.eclipseExecutable}" />
+    </f:entry>
+    <f:entry title="${%Executable is in workspace dir}" help="${rootURL}/../plugin/eclipserobot/help-workingdir.html">
+        <f:checkbox name="eclipserobotBuilder.executeFromWorkingDir" checked="${instance.executeFromWorkingDir}" />
+    </f:entry>
+
+</j:jelly>
